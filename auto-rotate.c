@@ -192,7 +192,7 @@ properties_changed (GDBusProxy *proxy,
 					g_print("ERROR : Coordinate Transformation Matrix property not found.\n");
 					return;
 				}
-				info = XIQueryDevice(dpy, XIAllDevices, &num_devices);
+				info = XIQueryDevice(dpy, 6, &num_devices);
 				for (i = 0; i < num_devices; ++i) {
 					device = info + i;
 					for (j = 0; j < device->num_classes; ++j) {
@@ -200,7 +200,6 @@ properties_changed (GDBusProxy *proxy,
 						if (touch->type == XITouchClass || touch->type == XIValuatorClass || 
 								touch->type == XIScrollClass) {
 							device_id = device->deviceid;
-
 							ret = XIGetProperty(dpy, device_id, prop_matrix, 0, 9, False, prop_float,
 									&type_return, &format_return, &nitems, &bytes_after, &coordinates._char);
 							if (ret != Success || prop_float != type_return || format_return != 32 ||

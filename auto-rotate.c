@@ -20,6 +20,10 @@
 #include <X11/extensions/Xrandr.h>
 
 #include <X11/extensions/XInput2.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 
 static GMainLoop *loop;
 static guint watch_id;
@@ -40,6 +44,24 @@ properties_changed (GDBusProxy *proxy,
 
 	if (g_variant_dict_contains (&dict, "AccelerometerOrientation")) {
 		v = g_dbus_proxy_get_cached_property (iio_proxy, "AccelerometerOrientation");
+		char	*match = "0";
+		char    *filepath = "/sys/class/switch/dp/state";
+		bool    infile = false;
+		char    *line = NULL;
+		size_t  len = 0;
+		ssize_t read;
+		
+		FILE    *fp = fopen(filepath, "r");
+		
+		if (!fp) {
+			fprintf(stderr, "Failed to open %s\n", filepath);
+			return 1;
+		}
+		while ((read = getline(&line, &len, fp)) != -1) {
+			line[strcspn(line, "\n")] = 0;
+			if (!strcmp(line, match)) {
+				
+
 
 		Rotation new_rotation;
 
@@ -119,21 +141,26 @@ properties_changed (GDBusProxy *proxy,
 			{
 				case RR_Rotate_0:
 					g_print("New X Rotation is normal\n");
+					system("xrandr --output DSI-0  --primary --mode 720x1280 --rotate normal --pos 0x0 --dpi 120");
 					break;
 				case RR_Rotate_90:
 					g_print("New X Rotation is left\n");
+					system("xrandr --output DSI-0  --primary --mode 720x1280 --rotate left --pos 0x0 --dpi 120");
 					break;
 				case RR_Rotate_180:
 					g_print("New X Rotation is upside down\n");
+					system("xrandr --output DSI-0  --primary --mode 720x1280 --rotate inverted --pos 0x0 --dpi 120");
 					break;
 				case RR_Rotate_270:
 					g_print("New X Rotation is right\n");
+					system("xrandr --output DSI-0  --primary --mode 720x1280 --rotate right --pos 0x0 --dpi 120");
 					break;
 				default:
 					g_print("Error with value of new_rotation\n");
 			}
-					
-			XRRSetScreenConfig(dpy, screen_config, root, current_size, new_rotation, CurrentTime);
+			// int status = system("xrandr --output DSI-0  --primary --mode 720x1280 --rotate normal --pos 0x0 --dpi 120");
+			
+			// XRRSetScreenConfig(dpy, screen_config, root, current_size, new_rotation, CurrentTime);
 
 			// rotate also input devices with XITouchClass and XIDirectTouch mode
 			float rotate0[9] = {
@@ -239,6 +266,9 @@ properties_changed (GDBusProxy *proxy,
 						
 		g_print ("    Accelerometer orientation changed: %s\n", g_variant_get_string (v, NULL));
 		g_variant_unref (v);
+	break;
+	}
+	}
 	}
 }
 
